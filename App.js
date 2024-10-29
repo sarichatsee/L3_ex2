@@ -2,16 +2,49 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View, ScrollView, Image, Alert, TouchableOpacity } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import Icon from "react-native-vector-icons/FontAwesome6";
+import { Audio } from 'expo-av';
+import { Video } from 'expo-av';
 
-const QuizQuestion = ({ question, options, onSelect }) => {
+const QuizQuestion = ({ question, options, onSelect, selectedAnswer }) => {
+  // Function to play audio
+  const playAudio = async () => {
+    if (question.audio) {
+      const { sound } = await Audio.Sound.createAsync(question.audio);
+      await sound.playAsync();
+    }
+  };
+
   return (
     <View style={styles.questionContainer}>
-      <Image source={question.image} style={styles.image} />
+      {question.image && <Image source={question.image} style={styles.image} />}
+      {question.audio && (
+        <TouchableOpacity style={styles.audioButton} onPress={playAudio}>
+          <Text style={styles.audioButtonText}>Play Audio</Text>
+        </TouchableOpacity>
+      )}
+      {question.video && (
+        <Video
+          source={question.video}
+          style={styles.video}
+          useNativeControls
+          resizeMode="contain"
+          isLooping={false}
+        />
+      )}
       <Text style={styles.questionText}>{question.text}</Text>
       <RNPickerSelect
         onValueChange={(value) => onSelect(value)}
         items={options.map(option => ({ label: option, value: option }))}
-        style={{ inputAndroid: { color: 'black', padding: 10, borderWidth: 1, borderColor: '#ccc', marginBottom: 10 } }}
+        value={selectedAnswer}
+        style={{
+          inputAndroid: {
+            color: 'black',
+            padding: 10,
+            borderWidth: 1,
+            borderColor: '#ccc',
+            marginBottom: 10,
+          },
+        }}
         placeholder={{ label: "Choose an answer", value: null }}
       />
     </View>
@@ -20,7 +53,7 @@ const QuizQuestion = ({ question, options, onSelect }) => {
 
 const App = () => {
   const [answers, setAnswers] = useState({});
-  
+
   const questions = [
     {
       id: 1,
@@ -42,14 +75,77 @@ const App = () => {
       image: require('./assets/img/deer.jpg'),
       correctAnswer: "Deer",
       options: ["Deer", "Elk", "Goat"]
-    }
+    },
+    {
+      id: 4,
+      text: "What is the name of this weapon?",
+      image: require('./assets/img/IMG0010.jpg'),
+      correctAnswer: "Dark Moon Greatsword",
+      options: ["Ruins Greatsword", "Dark Moon Greatsword", "Bolt of Gransax", "Sword of Night and Flame"],
+    },
+    // Audio question with require for static file reference
+    {
+      id: 5,
+      text: "Which character tells you this?",
+      audio: require('./assets/audio/SOUND0015.wav'), // Use require for direct reference
+      correctAnswer: "Adan, Thief of Fire",
+      options: ["Demi-Human Queen Gilika", "Commander Niall", "Margit, The Fell Omen", "Adan, Thief of Fire"]
+    },
+    // Video question
+    {
+      id: 6,
+      text: "Which incantation is this player using?",
+      video: require('./assets/vid/VID0012.webm'), // WebM video file
+      correctAnswer: "Litany of Proper Death",
+      options: ["Golden Vow", "Litany of Proper Death", "Order's Blade", "Urgent Heal"]
+    },
+    {
+      id: 7,
+      text: "What important landmark is shown in this image?",
+      image: require('./assets/img/IMG0031.jpg'),
+      correctAnswer: "A Stake of Marika",
+      options: ["A Stake of Marika", "A Spiritspring", "A Martyr Effigy", "A Divine Tower"]
+    },
+    {
+      id: 8,
+      text: "When do you hear this sound?",
+      audio: require('./assets/audio/SOUND0005.mp3'),
+      correctAnswer: "When drinking a flask",
+      options: [
+        "When drinking a flask",
+        "When you get a critical hit",
+        "When you use a Spiritspring",
+        "When you discover a Site of Lost Grace"
+      ]
+    },
+    {
+      id: 9,
+      text: "What is the name of this Site of Lost Grace?",
+      image: require('./assets/img/IMG0027.jpg'),
+      correctAnswer: "Erdtree-Gazing Hill",
+      options: ["Ailing Village Outskirts", "Fallen Ruins of the Lake", "Erdtree-Gazing Hill", "Stormveil Cliffside"]
+    },
+    {
+      id: 10,
+      text: "Which character tells you this?",
+      audio: require('./assets/audio/SOUND0016.wav'),
+      correctAnswer: "Rennala, Queen of the Full Moon",
+      options: ["Perfumer Tricia", "Rennala, Queen of the Full Moon", "Godfrey the Grafted", "Malenia, Blade of Miquella"]
+    },
   ];
-
+  
   const handleAnswerSelect = (questionId, answer) => {
     setAnswers(prevAnswers => ({ ...prevAnswers, [questionId]: answer }));
   };
 
   const handleSubmit = () => {
+    const allAnswered = questions.every((question) => answers[question.id] !== undefined);
+
+    if (!allAnswered) {
+      Alert.alert("Incomplete Quiz", "Please answer all questions before submitting.");
+      return;
+    }
+
     let correctCount = 0;
     questions.forEach(question => {
       if (answers[question.id] === question.correctAnswer) {
@@ -57,17 +153,7 @@ const App = () => {
       }
     });
 
-    let message = "";
-    if (correctCount === 3) {
-      message = "Excellent! You got all answers correct!";
-    } else if (correctCount === 2) {
-      message = "Good job! You got 2 out of 3 correct.";
-    } else if (correctCount === 1) {
-      message = "Nice try! You got 1 correct answer.";
-    } else {
-      message = "You can do better next time. Try again!";
-    }
-
+    let message = `You got ${correctCount} out of ${questions.length} correct.`;
     Alert.alert("Quiz Result", message);
   };
 
@@ -84,12 +170,16 @@ const App = () => {
           question={question}
           options={question.options}
           onSelect={(answer) => handleAnswerSelect(question.id, answer)}
+          selectedAnswer={answers[question.id]}
         />
       ))}
 
-      {/* Button with custom padding and margin */}
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+        <TouchableOpacity
+          style={[styles.button, { opacity: questions.every(q => answers[q.id]) ? 1 : 0.5 }]}
+          onPress={handleSubmit}
+          disabled={!questions.every(q => answers[q.id])}
+        >
           <Text style={styles.buttonText}>SUBMIT ANSWERS</Text>
         </TouchableOpacity>
       </View>
@@ -124,14 +214,31 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
     marginVertical: 10,
   },
+  video: {
+    width: '100%',
+    height: 200,
+    marginVertical: 10,
+  },
+  audioButton: {
+    backgroundColor: '#00bfff',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  audioButtonText: {
+    color: '#fff',
+    fontSize: 16,
+  },
   buttonContainer: {
     alignItems: 'center',
-    marginVertical: 20,   // Add margin around the button
+    marginVertical: 20,
   },
   button: {
     backgroundColor: '#1E90FF',
-    paddingVertical: 15,   // Vertical padding for height
-    paddingHorizontal: 30, // Horizontal padding for width
+    paddingVertical: 15,
+    paddingHorizontal: 30,
     borderRadius: 5,
   },
   buttonText: {
