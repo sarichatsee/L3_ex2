@@ -190,37 +190,55 @@ const App = () => {
 const styles = StyleSheet.create({
   container: {
     padding: 20,
+    backgroundColor: '#f0f8ff', // Light background for the app
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 20,
+    justifyContent: 'center',
+    paddingVertical: 10,
+    backgroundColor: '#1e90ff',
+    borderRadius: 10,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
+    color: '#fff',
     marginLeft: 10,
   },
   questionContainer: {
+    backgroundColor: '#ffffff',
+    padding: 15,
+    borderRadius: 10,
     marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 3, // For Android shadow
   },
   questionText: {
-    fontSize: 16,
-    marginVertical: 10,
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 10,
   },
   image: {
-    width: 220,
+    width: '100%',
     height: 220,
     resizeMode: 'contain',
+    borderRadius: 10,
     marginVertical: 10,
   },
   video: {
     width: '100%',
     height: 200,
     marginVertical: 10,
+    borderRadius: 10,
   },
   audioButton: {
-    backgroundColor: '#00bfff',
+    backgroundColor: '#ffa500',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
@@ -230,6 +248,15 @@ const styles = StyleSheet.create({
   audioButtonText: {
     color: '#fff',
     fontSize: 16,
+    fontWeight: 'bold',
+  },
+  pickerSelect: {
+    color: 'black',
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    marginBottom: 10,
   },
   buttonContainer: {
     alignItems: 'center',
@@ -239,7 +266,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#1E90FF',
     paddingVertical: 15,
     paddingHorizontal: 30,
-    borderRadius: 5,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 3,
   },
   buttonText: {
     color: '#fff',
